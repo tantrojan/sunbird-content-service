@@ -3,9 +3,16 @@
  * author: Anuj Gupta
  * desc: route file for course
  */
+ /*
+  Added by : Tanmoy Ghosh (tantrojan)
+*/
 
 var courseService = require('../service/courseService')
 var requestMiddleware = require('../middlewares/request.middleware')
+
+// tantrojan
+var iitbx = require('../service/iitbx')
+//
 
 var BASE_URL = '/v1/course'
 
@@ -37,4 +44,11 @@ module.exports = function (app) {
   app.route(BASE_URL + '/hierarchy/update')
     .patch(requestMiddleware.createAndValidateRequestBody, requestMiddleware.validateToken,
       requestMiddleware.hierarchyUpdateApiAccess, courseService.updateCourseHierarchyAPI)
+
+  // tantrojan
+  app.route(BASE_URL + '/iitbx').get(iitbx.getAllAPI)
+  app.route(BASE_URL + '/iitbx/:name').get(iitbx.getByNameAPI)
+  app.route(BASE_URL + '/iitbx/:type').get(iitbx.getByTypeAPI)
+  //
+
 }
