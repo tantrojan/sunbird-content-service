@@ -30,7 +30,7 @@ generateSwiftAuth();
 
 module.exports = {
 	
-	getAllAPI : function(req,res){
+	getCoursesAPI : function(req,res){
 		
 		console.log(storageUrl +"\n"+ xAuth);
 		var requestParameter = {
@@ -58,8 +58,30 @@ module.exports = {
 		  // res.send(response);
 		});
 	},
-	getByNameAPI : function(req,res){
+	getObjectsAPI : function(req,res){
+	
+		var requestParameter = {
+			uri: storageUrl + "/"+ req.params['course_name'],
+			method: "GET",
+			headers : {
+				'x-auth-token' : xAuth,
+				'content-type' : 'application/json'
+				// 'data-type'	: 'image/png'
+			}
+		}
 
+		var matrix={};
+		request(requestParameter, function(error, response, body) {
+		  var objects = response.body.split("\n");
+		  objects=objects.slice(0,-1);
+		  console.log(objects);
+		  for(var i=0;i<objects.length;i++)
+		  {
+		  	
+		  	matrix[i]=objects[i];
+		  }
+		  res.send(matrix);
+		});
 	},
 	getByTypeAPI : function(req,res){
 
