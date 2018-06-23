@@ -48,7 +48,7 @@ module.exports = function (app) {
   // tantrojan
   app.route(BASE_URL + '/iitbx').get(iitbx.getCoursesAPI)
   app.route(BASE_URL + '/iitbx/:course_name').get(iitbx.getObjectsAPI)
-  app.route(BASE_URL + '/iitbx/:type').get(iitbx.getByTypeAPI)
+  app.route(BASE_URL + '/iitbx/:course_name/:obj_name').get(iitbx.getParticularObjectAPI)
   //
 
 }

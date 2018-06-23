@@ -2,6 +2,7 @@
 Made by Tanmoy Ghosh (tantrojan)
 */
 const request =require("request");
+const http = require("http");
 var storageUrl="";
 var xAuth="";
 
@@ -37,7 +38,7 @@ module.exports = {
 			uri: storageUrl,
 			method: "GET",
 			headers : {
-				'x-auth-token' : xAuth,
+				'x-auth-tok10.129.103.86en' : xAuth,
 				'content-type' : 'application/json'
 				// 'data-type'	: 'image/png'
 			}
@@ -45,21 +46,19 @@ module.exports = {
 
 		var matrix={};
 		request(requestParameter, function(error, response, body) {
-		  var containers = response.body.split("\n");
-		  containers=containers.slice(0,-1);
-		  console.log(containers);
-		  for(var i=0;i<containers.length;i++)
-		  {
-		  	
-		  	matrix[i]=containers[i];
-		  }
-		  res.send(matrix);
-		  // // res.send(body);
-		  // res.send(response);
+			var containers = response.body.split("\n");
+			containers=containers.slice(0,-1);
+			console.log(containers);
+			for(var i=0;i<containers.length;i++)
+			{
+
+				matrix[i]=containers[i];
+			}
+			res.send(matrix);
 		});
 	},
 	getObjectsAPI : function(req,res){
-	
+
 		var requestParameter = {
 			uri: storageUrl + "/"+ req.params['course_name'],
 			method: "GET",
@@ -72,19 +71,50 @@ module.exports = {
 
 		var matrix={};
 		request(requestParameter, function(error, response, body) {
-		  var objects = response.body.split("\n");
-		  objects=objects.slice(0,-1);
-		  console.log(objects);
-		  for(var i=0;i<objects.length;i++)
-		  {
-		  	
-		  	matrix[i]=objects[i];
-		  }
-		  res.send(matrix);
+			var objects = response.body.split("\n");
+			objects=objects.slice(0,-1);
+			console.log(objects);
+			for(var i=0;i<objects.length;i++)
+			{
+
+				matrix[i]=objects[i];
+			}
+			res.send(matrix);
 		});
 	},
-	getByTypeAPI : function(req,res){
+	getParticularObjectAPI : function(req,res){
+		var options = {
+			method: 'GET',
+			host: '10.129.103.86',
+			port: 8080,
+			path: '/v1/AUTH_b3f70be8acad4ec197e2b5edf48d9e5a/' + req.params['course_name'] +'/' + req.params['obj_name'],
+			headers : {
+				'x-auth-token' : xAuth,
+			}
+		};
 
+		var request = http.request(options, function(response) {
+			var data = [];
+			// console.log("CONNECTED TO SWIFT")
+			response.on('data', function(chunk) {
+				data.push(chunk);
+			});
+
+			response.on('end', function() {
+				data = Buffer.concat(data);
+				// console.log('requested content length: ', response.headers['content-length'] , response.headers['content-type']);
+				// console.log('parsed content length: ', data.length);
+				res.writeHead(200, {
+					'Content-Type': response.headers['content-type'],
+					'content-disposition' : 'inline',
+					'Content-Length': data.length
+				});
+				res.end(data);
+			});
+		});
+
+		request.end();
+		
 	},
 
 }
