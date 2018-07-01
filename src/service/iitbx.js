@@ -1,10 +1,12 @@
 /*
-Made by Tanmoy Ghosh (tantrojan)
+Added by Tanmoy Ghosh (tantrojan)
 */
 const request =require("request");
 const http = require("http");
 var storageUrl="";
 var xAuth="";
+var fs = require('fs');
+var path = require('path');
 
 function generateSwiftAuth()
 {
@@ -38,7 +40,7 @@ module.exports = {
 			uri: storageUrl,
 			method: "GET",
 			headers : {
-				'x-auth-tok10.129.103.86en' : xAuth,
+				'x-auth-token' : xAuth,
 				'content-type' : 'application/json'
 				// 'data-type'	: 'image/png'
 			}
@@ -116,5 +118,73 @@ module.exports = {
 		request.end();
 		
 	},
+	createCourseAPI : function(req,res){
+
+		var input_files = req.files;
+		var input_body = req.body;
+
+		console.log(input_files);
+		console.log(input_body);
+		// res.send('OK')
+		var course_name = input_body['title'];
+		// Creating Container
+		var options = {
+			uri: storageUrl + "/"+ course_name,
+			method: "PUT",
+			headers : {
+				'x-auth-token' : xAuth,
+				'content-type' : 'application/json'
+			}
+		}
+
+		request(options, function(err2,res2,body2){
+		//	res.send("Container"  + course_name + " doesn't exist. Creating New Container.");
+			// Creating objects insid in the container
+			for(var i=0;i<input_files.length;i++)
+		 	{
+
+				fileName = input_files[i].filename;
+				mimeType = input_files[i].mimetype;
+				console.log(mimeType)
+				console.log(fileName)
+				file = fs.readFileSync(path.join(__dirname,'../uploads/'+ fileName));
+
+				var postheaders = {
+					'x-auth-token' : xAuth,
+					'Content-Type' : mimeType,
+					'Content-Length' : Buffer.byteLength(file, null)
+				};
+
+				var options = {
+					host: '10.129.103.86',
+					port: 8080,
+					path: '/v1/AUTH_b3f70be8acad4ec197e2b5edf48d9e5a/'+ course_name+'/'+fileName,
+					method: 'PUT',
+					headers : postheaders,
+					encoding : null
+				};
+
+				var reqPost = http.request(options, function(response) {
+					console.log("statusCode: ", response.statusCode);
+					// res.sendStatus(response.statusCode)
+					//response.on('data', function(d) {
+						// console.info('POST result:\n');
+						// process.stdout.write(d);
+						// console.info('\n\nPOST completed')
+						// res.send("OK DONE")
+					//});
+
+				});
+
+				console.log('Writing Data');
+				reqPost.write(file,null);
+				reqPost.end();
+				reqPost.on('error', function(e) {
+					console.error(e);
+				});
+		 	}
+		});
+
+	}		
 
 }

@@ -3,22 +3,34 @@
  * author: Anuj Gupta
  * desc: route file for course
  */
- /*
-  Added by : Tanmoy Ghosh (tantrojan)
-*/
+
+//Multer for multiform data
+var multer  = require('multer');
+
+// Multer Configuration 
+var storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function(req, file, cb) {
+    cb(null, file.originalname );
+  }
+});
+
+var upload = multer({ storage: storage });
 
 var courseService = require('../service/courseService')
 var requestMiddleware = require('../middlewares/request.middleware')
 
+var BASE_URL = '/v1/course'
 // tantrojan
 var iitbx = require('../service/iitbx')
 //
 
-var BASE_URL = '/v1/course'
-
 module.exports = function (app) {
   app.route(BASE_URL + '/search')
-    .post(requestMiddleware.createAndValidateRequestBody, courseService.searchCourseAPI)
+    .post(requestMiddleware.createAndValidateRequestBody, requestMiddleware.addChannelFilters,
+      courseService.searchCourseAPI)
 
   app.route(BASE_URL + '/create')
     .post(requestMiddleware.createAndValidateRequestBody, courseService.createCourseAPI)
@@ -46,9 +58,11 @@ module.exports = function (app) {
       requestMiddleware.hierarchyUpdateApiAccess, courseService.updateCourseHierarchyAPI)
 
   // tantrojan
-  app.route(BASE_URL + '/iitbx').get(iitbx.getCoursesAPI)
-  app.route(BASE_URL + '/iitbx/:course_name').get(iitbx.getObjectsAPI)
-  app.route(BASE_URL + '/iitbx/:course_name/:obj_name').get(iitbx.getParticularObjectAPI)
+  app.route(BASE_URL + '/iitbx/view').get(iitbx.getCoursesAPI)
+  app.route(BASE_URL + '/iitbx/:course_name/view').get(iitbx.getObjectsAPI)
+  app.route(BASE_URL + '/iitbx/:course_name/:obj_name/view').get(iitbx.getParticularObjectAPI)
+  app.use(upload.any())
+  app.route(BASE_URL + '/iitbx/createCourse').post(iitbx.createCourseAPI)
   //
 
 }
