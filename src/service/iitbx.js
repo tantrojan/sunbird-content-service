@@ -44,7 +44,8 @@ module.exports = {
 	},
 
 	getObjectsAPI : function(req,res){
-
+		
+		// Request for fetching object list
 		var requestParameter = {
 			uri: storageUrl + req.params['course_name'],
 			method: "GET",
@@ -53,28 +54,58 @@ module.exports = {
 			}
 		}
 
-		
+		var flag=0;
+		var matrix={};
+		var details = "";
 		request(requestParameter, function(error, response, body) {
 
-			var matrix={};
 			console.log(response.body)
 			var objects = (JSON.parse(response.body)).split("\n");
 			objects=objects.slice(0,-1);
-			console.log(objects);
+			// console.log(objects);
 
 			var objects = (JSON.parse(response.body)).split("\n");
 			objects=objects.slice(0,-1);
-			console.log(objects);
+			// console.log(objects);
 			for(var i=0;i<objects.length;i++)
 			{  	
 				matrix[i]=objects[i];
 			}
-			res.send(matrix);
+			if(i==objects.length)
+			{
+				// Request for fetching course details
+				var requestParameter = {
+					uri: storageUrl + req.params['course_name'] +"/metadata" ,
+					method: "GET",
+					headers : {
+						'content-type' : 'application/json'
+					}
+				}
+
+				request(requestParameter,function(error,response,body){
+					var metadata = JSON.parse(response.body);
+					details = metadata['X-Container-Meta-Detail'];
+					flag++;
+					console.log(flag);
+					if(details==null)
+					{
+						details="No Description";
+					}
+					var result = {
+						'description' :details,
+						'objects' : matrix
+					}
+					console.log("sent")
+					res.send((result));
+
+				})
+			}
 
 		});
 	},
 
 	getParticularObjectAPI :function(req,res){
+
 		var options = {
 			method: 'GET',
 			host: domain,
@@ -129,6 +160,7 @@ module.exports = {
 		console.log(input_body);
 		// res.send('OK')
 		var course_name = input_body['title'];
+		var details = input_body['description'].trim();
 		// Creating Container
 		console.log("Making new cont");
 		var options = {
@@ -157,15 +189,43 @@ module.exports = {
 					{
 						console.log("Error :" + err);
 					}
-					console.log(res);
+					// console.log(res);
 				});
 			}
 			if(i==input_files.length)
 			{
-				res.send('All files uploaded')
+				//Uploading metadata
+				var requestParameter = {
+					uri: storageUrl + course_name,
+					method: "POST",
+					headers : {
+						'content-type' : 'application/json'
+					},
+					body : JSON.stringify({"X-Container-Meta-Detail": details})
+				}
+
+				request(requestParameter,function(error,response,body){
+					res.send('All files uploaded, and details added in metadata of the container');
+				})
 			}
 
 		});
-	}		
+	},
+
+	deleteCourseAPI : function(req,res){
+
+		var requestParameter = {
+			uri: storageUrl + req.params['course_name'],
+			method: "DELETE",
+			headers : {
+				'content-type' : 'application/json'
+			}
+		}
+
+		request(requestParameter, function(error, response, body) {
+			res.send("ontainer Deleted");
+		});
+	}
+
 
 }
